@@ -76,6 +76,7 @@ class NetworkService {
 			if ($respCode >= 400) {
 				return ['error' => $this->l10n->t('Bad credentials')];
 			}
+
 			if ($jsonResponse) {
 				return json_decode($body, true);
 			}

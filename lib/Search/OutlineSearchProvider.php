@@ -88,17 +88,11 @@ class OutlineSearchProvider implements IProvider {
 	}
 
 	protected function getMainText(array $entry): string {
-		return strip_tags($entry['content']);
+		return strip_tags($entry['document']['title']);
 	}
 
 	protected function getSubline(array $entry): string {
-		if ($entry['type'] === 'stream') {
-			return $this->l10n->t('%s in #%s > %s at %s', [$entry['sender_full_name'], $entry['display_recipient'], $entry['subject'], $this->getFormattedDate($entry['timestamp'])]);
-		}
-
-		$recipients = array_map(fn (array $user): string => $user['full_name'], $entry['display_recipient']);
-		$displayRecipients = '@' . $recipients[0] . (count($recipients) > 1 ? ' (+' . strval(count($recipients) - 1) . ')' : '');
-		return $this->l10n->t('%s in %s at %s', [$entry['sender_full_name'], $displayRecipients, $this->getFormattedDate($entry['timestamp'])]);
+		return $this->l10n->t('%s created by %s at %s', [$entry['document']['title'], $entry['createdBy']['name'], $this->getFormattedDate($entry['createdBy']['createdAt'])]);
 	}
 
 	protected function getFormattedDate(int $timestamp): string {
@@ -111,13 +105,8 @@ class OutlineSearchProvider implements IProvider {
 	 * @return string
 	 */
 	protected function getLinkToOutline(array $entry, string $url): string {
-		if ($entry['type'] === 'private') {
-			$userIds = array_map(fn (array $recipient): string => strval($recipient['id']), $entry['display_recipient']);
-			return rtrim($url, '/') . '/#narrow/dm/' . implode(',', $userIds) . '/near/' . $entry['id'];
-		}
-
 		$topic = str_replace('%', '.', rawurlencode($entry['subject']));
-		return rtrim($url, '/') . '/#narrow/channel/' . $entry['stream_id'] . '/topic/' . $topic . '/near/' . $entry['id'];
+		return rtrim($url, '/') . $entry['document']['url'];
 	}
 
 	/**
