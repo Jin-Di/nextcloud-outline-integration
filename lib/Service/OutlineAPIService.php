@@ -41,7 +41,7 @@ class OutlineAPIService {
 		$this->client = $clientService->newClient();
 	}
 
-    	public function searchMessages(string $userId, string $term, int $offset = 0, int $limit = 5): array {
+    	public function searchMessages(string $userId, string $term, int $offset = 0, int $limit = 2): array {
 		$result = $this->request($userId, 'document.search', [
 			'limit' => $offset + $limit,
 			'query' => $term,

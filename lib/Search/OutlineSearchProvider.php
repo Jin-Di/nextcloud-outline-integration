@@ -34,7 +34,7 @@ class OutlineSearchProvider implements IProvider {
 	}
 
     	public function getId(): string {
-        	return 'outline-search-provider';
+        	return 'outline-search-messages';
     	}
 
     	public function getName(): string {

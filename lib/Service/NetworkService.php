@@ -46,7 +46,6 @@ class NetworkService {
 				'headers' => [
 					'Authorization' => 'Bearer ' . $apiKey,
 					'Content-Type' => 'application/json',
-					'User-Agent' => Application::INTEGRATION_USER_AGENT,
 					'Accept' => 'application/json',
 				],
 			];
@@ -55,13 +54,19 @@ class NetworkService {
 				if ($method === 'GET') {
 					$url .= '?' . http_build_query($params);
 				} else {
-					$options['body'] = $params;
+					$options['json'] = $params;
 				}
 			}
+
+			$this->logger->warning('Debug : ' , ['options' => $options, 'param' => $params]);
+			$this->logger->warning('Debug : ' , ['test[]' => $options['headers']['Authorization'], 'app' => Application::APP_ID]);
+			$this->logger->warning('Debug : ' , ['url' => $url]);
+			$this->logger->warning('Debug Response: ' , ['Response' => $response, 'Method' => $method]);
 
 			if ($method === 'GET') {
 				$response = $this->client->get($url, $options);
 			} elseif ($method === 'POST') {
+				$this->logger->warning('Debug : Reach POST METHOD condition');
 				$response = $this->client->post($url, $options);
 			} elseif ($method === 'PUT') {
 				$response = $this->client->put($url, $options);
@@ -70,6 +75,7 @@ class NetworkService {
 			} else {
 				return ['error' => $this->l10n->t('Bad HTTP method')];
 			}
+
 			$body = $response->getBody();
 			$respCode = $response->getStatusCode();
 
