@@ -41,9 +41,10 @@ class OutlineAPIService {
 		$this->client = $clientService->newClient();
 	}
 
-    	public function searchMessages(string $userId, string $term, int $offset = 0, int $limit = 2): array {
-		$result = $this->request($userId, 'document.search', [
-			'limit' => $offset + $limit,
+    	public function searchMessages(string $userId, string $term, int $offset = 0, int $limit = 10): array {
+		$result = $this->request($userId, 'documents.search', [
+			// Limit number of query
+			// 'limit' => $offset + $limit,
 			'query' => $term,
 		]);
 
@@ -51,9 +52,9 @@ class OutlineAPIService {
 			return (array) $result;
 		}
 
-		// sort by most recent
-		$messages = array_reverse($result['document'] ?? []);
-		return array_slice($messages, $offset, $limit);
+		// Sort by most recent
+		// $messages = array_reverse($result['document'] ?? []);
+		return array_slice($result, $offset, $limit);
 	}
 
 	public function request(string $userId, string $endPoint, array $params = [], string $method = 'POST',

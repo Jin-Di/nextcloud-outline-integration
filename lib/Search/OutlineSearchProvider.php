@@ -18,10 +18,12 @@ use OCP\Search\IProvider;
 use OCP\Search\ISearchQuery;
 use OCP\Search\SearchResult;
 use OCP\Search\SearchResultEntry;
+use Psr\Log\LoggerInterface;
 
 class OutlineSearchProvider implements IProvider {
 
 	public function __construct(
+		private LoggerInterface $logger,
 		private IAppManager $appManager,
 		private IL10N $l10n,
 		private IConfig $config,
@@ -68,35 +70,27 @@ class OutlineSearchProvider implements IProvider {
 			return SearchResult::paginated($this->getName(), [], 0);
 		}
 
+		$dataEntries = $searchResult['data'] ?? [];
 	        $formattedResults = array_map(function (array $entry) use ($url): SearchResultEntry {
 			$finalThumbnailUrl = $this->getThumbnailUrl($entry);
+			$title = $entry['document']['title'] ?? 'Untitled';
+        		$context = $entry['context'] ?? '';
+	        	$link = $this->getLinkToOutline($entry, $url);
 			return new SearchResultEntry(
 				$finalThumbnailUrl,
-				$this->getMainText($entry),
-				$this->getSubline($entry),
-				$this->getLinkToOutline($entry,$url),
+				$title,
+            			strip_tags($context),
+			        $link,
 				$finalThumbnailUrl === '' ? 'icon-outline-search-fallback' : '',
 				true
 			);
-	       	}, $searchResult);
+	       	}, $dataEntries);
 
 		return SearchResult::paginated(
 			$this->getName(),
 			$formattedResults,
-			$offset + $limit
+			$offset + count($dataEntries)
 	    	);
-	}
-
-	protected function getMainText(array $entry): string {
-		return strip_tags($entry['document']['title']);
-	}
-
-	protected function getSubline(array $entry): string {
-		return $this->l10n->t('%s created by %s at %s', [$entry['document']['title'], $entry['createdBy']['name'], $this->getFormattedDate($entry['createdBy']['createdAt'])]);
-	}
-
-	protected function getFormattedDate(int $timestamp): string {
-		return $this->dateTimeFormatter->formatDateTime($timestamp, 'long', 'short', $this->dateTimeZone->getTimeZone());
 	}
 
 	/**
@@ -105,8 +99,7 @@ class OutlineSearchProvider implements IProvider {
 	 * @return string
 	 */
 	protected function getLinkToOutline(array $entry, string $url): string {
-		$topic = str_replace('%', '.', rawurlencode($entry['subject']));
-		return rtrim($url, '/') . $entry['document']['url'];
+		return rtrim($url, '/') . ($entry['document']['url'] ?? '#');
 	}
 
 	/**
