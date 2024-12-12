@@ -14,7 +14,7 @@ webpackConfig.stats = {
 	modules: false,
 }
 
-const appId = 'outline'
+const appId = 'integration_outline'
 webpackConfig.entry = {
 	personalSettings: { import: path.join(__dirname, 'src', 'personalSettings.js'), filename: appId + '-personalSettings.js' },
 }
