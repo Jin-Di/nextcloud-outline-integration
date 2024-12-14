@@ -18,10 +18,12 @@ use OCP\Search\IProvider;
 use OCP\Search\ISearchQuery;
 use OCP\Search\SearchResult;
 use OCP\Search\SearchResultEntry;
+use Psr\Log\LoggerInterface;
 
 class OutlineSearchProvider implements IProvider {
 
 	public function __construct(
+		private LoggerInterface $logger,
 		private IAppManager $appManager,
 		private IL10N $l10n,
 		private IConfig $config,
@@ -34,7 +36,7 @@ class OutlineSearchProvider implements IProvider {
 	}
 
     	public function getId(): string {
-        	return 'outline-search-provider';
+        	return 'outline-search-messages';
     	}
 
     	public function getName(): string {
@@ -68,41 +70,27 @@ class OutlineSearchProvider implements IProvider {
 			return SearchResult::paginated($this->getName(), [], 0);
 		}
 
+		$dataEntries = $searchResult['data'] ?? [];
 	        $formattedResults = array_map(function (array $entry) use ($url): SearchResultEntry {
 			$finalThumbnailUrl = $this->getThumbnailUrl($entry);
+			$title = $entry['document']['title'] ?? 'Untitled';
+        		$context = $entry['context'] ?? '';
+	        	$link = $this->getLinkToOutline($entry, $url);
 			return new SearchResultEntry(
 				$finalThumbnailUrl,
-				$this->getMainText($entry),
-				$this->getSubline($entry),
-				$this->getLinkToOutline($entry,$url),
+				$title,
+            			strip_tags($context),
+			        $link,
 				$finalThumbnailUrl === '' ? 'icon-outline-search-fallback' : '',
 				true
 			);
-	       	}, $searchResult);
+	       	}, $dataEntries);
 
 		return SearchResult::paginated(
 			$this->getName(),
 			$formattedResults,
-			$offset + $limit
+			$offset + count($dataEntries)
 	    	);
-	}
-
-	protected function getMainText(array $entry): string {
-		return strip_tags($entry['content']);
-	}
-
-	protected function getSubline(array $entry): string {
-		if ($entry['type'] === 'stream') {
-			return $this->l10n->t('%s in #%s > %s at %s', [$entry['sender_full_name'], $entry['display_recipient'], $entry['subject'], $this->getFormattedDate($entry['timestamp'])]);
-		}
-
-		$recipients = array_map(fn (array $user): string => $user['full_name'], $entry['display_recipient']);
-		$displayRecipients = '@' . $recipients[0] . (count($recipients) > 1 ? ' (+' . strval(count($recipients) - 1) . ')' : '');
-		return $this->l10n->t('%s in %s at %s', [$entry['sender_full_name'], $displayRecipients, $this->getFormattedDate($entry['timestamp'])]);
-	}
-
-	protected function getFormattedDate(int $timestamp): string {
-		return $this->dateTimeFormatter->formatDateTime($timestamp, 'long', 'short', $this->dateTimeZone->getTimeZone());
 	}
 
 	/**
@@ -111,13 +99,7 @@ class OutlineSearchProvider implements IProvider {
 	 * @return string
 	 */
 	protected function getLinkToOutline(array $entry, string $url): string {
-		if ($entry['type'] === 'private') {
-			$userIds = array_map(fn (array $recipient): string => strval($recipient['id']), $entry['display_recipient']);
-			return rtrim($url, '/') . '/#narrow/dm/' . implode(',', $userIds) . '/near/' . $entry['id'];
-		}
-
-		$topic = str_replace('%', '.', rawurlencode($entry['subject']));
-		return rtrim($url, '/') . '/#narrow/channel/' . $entry['stream_id'] . '/topic/' . $topic . '/near/' . $entry['id'];
+		return rtrim($url, '/') . ($entry['document']['url'] ?? '#');
 	}
 
 	/**

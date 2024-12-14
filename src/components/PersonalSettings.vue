@@ -2,33 +2,33 @@
 	<div id="outline_prefs" class="section">
 		<h2>
 			<OutlineIcon class="icon" />
-			{{ t('outline', 'Outline Integration') }}
+			{{ t('integration_outline', 'Outline Integration') }}
 		</h2>
 		<div id="outline-content">
 			<p class="settings-hint">
 				<InformationOutlineIcon :size="24" class="icon" />
-				{{ t('outline', 'Enter your Outline API key below to enable integration.') }}
+				{{ t('integration_outline', 'Enter your Outline API key below to enable integration.') }}
 			</p>
 			<div class="line">
 				<label for="outline-url">
 					<EarthIcon :size="20" class="icon" />
-					{{ t('outline', 'Outline instance address') }}
+					{{ t('integration_outline', 'Outline instance address') }}
 				</label>
 				<input id="outline-url"
 					v-model="state.url"
 					type="text"
-					:placeholder="t('outline', 'Outline instance address')"
+					:placeholder="t('integration_outline', 'Outline instance address')"
 					@input="onInput">
 			</div>
 			<div class="line">
 				<label for="outline-key">
 					<KeyIcon :size="20" class="icon" />
-					{{ t('outline', 'API Key') }}
+					{{ t('integration_outline', 'API Key') }}
 				</label>
 				<input id="outline-key"
 					v-model="state.api_key"
 					type="password"
-					:placeholder="t('outline', 'Your Outline API key')"
+					:placeholder="t('integration_outline', 'Your Outline API key')"
 					@input="onSensitiveInput">
 			</div>
 		</div>
@@ -61,7 +61,7 @@ export default {
 
 	data() {
 		return {
-			state: loadState('outline', 'user-config'),
+			state: loadState('integration_outline', 'user-config'),
 			loading: false,
 		}
 	},
@@ -93,14 +93,14 @@ export default {
 			const req = {
 				values,
 			}
-			const url = generateUrl(`/apps/outline/${values.api_key !== undefined ? 'sensitive-' : ''}config`)
+			const url = generateUrl(`/apps/integration_outline/${values.api_key !== undefined ? 'sensitive-' : ''}config`)
 			axios.put(url, req)
 				.then((response) => {
-					showSuccess(t('outline', 'Outline options saved'))
+					showSuccess(t('integration_outline', 'Outline options saved'))
 				})
 				.catch((error) => {
 					showError(
-						t('outline', 'Failed to save Outline options')
+						t('integration_outline', 'Failed to save Outline options')
 						+ ': ' + (error.response?.request?.responseText ?? ''),
 					)
 					console.error(error)

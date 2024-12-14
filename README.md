@@ -1,4 +1,4 @@
-# Hello World
+# Nextcloud Outline Integration
 
 A template to get started with Nextcloud app development.
 
